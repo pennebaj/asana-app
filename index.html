@@ -446,15 +446,28 @@
     if (!order.length) return tasks;
     var map = {};
     order.forEach(function (gid, i) { map[gid] = i; });
-    var MAX = order.length + tasks.length;
-    return tasks.slice().sort(function (a, b) {
-      var ai = map[a.gid] !== undefined ? map[a.gid] : MAX;
-      var bi = map[b.gid] !== undefined ? map[b.gid] : MAX;
-      if (ai !== bi) return ai - bi;
-      if (a.due_on < b.due_on) return -1;
-      if (a.due_on > b.due_on) return 1;
-      return (a._order || 0) - (b._order || 0);
+
+    // Group by date (tasks already sorted by date)
+    var groups = {}, dates = [];
+    tasks.forEach(function (t) {
+      if (!groups[t.due_on]) { groups[t.due_on] = []; dates.push(t.due_on); }
+      groups[t.due_on].push(t);
     });
+
+    // Within each date group apply saved order; unsaved tasks go to end of group
+    var result = [];
+    dates.forEach(function (date) {
+      var g = groups[date];
+      var MAX = order.length + g.length;
+      g.sort(function (a, b) {
+        var ai = map[a.gid] !== undefined ? map[a.gid] : MAX;
+        var bi = map[b.gid] !== undefined ? map[b.gid] : MAX;
+        if (ai !== bi) return ai - bi;
+        return (a._order || 0) - (b._order || 0);
+      });
+      g.forEach(function (t) { result.push(t); });
+    });
+    return result;
   }
 
   // ── Drag and drop ─────────────────────────────────────
