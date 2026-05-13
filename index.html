@@ -197,6 +197,7 @@
     body.dark .btn-move { background: #1a2540; border-color: #2a3f6f; }
     body.dark .btn-move:hover { background: #223060; }
     #app.reorder-mode .btn-move { display: flex; }
+    #app.reorder-mode .btn-move + .task-check { margin-left: 10px; }
 
     /* Checkbox */
     .task-check {
@@ -664,12 +665,12 @@
     });
 
     main.appendChild(handle);
+    main.appendChild(btnUp);
+    main.appendChild(btnDown);
     main.appendChild(check);
     main.appendChild(name);
     main.appendChild(due);
     main.appendChild(snooze);
-    main.appendChild(btnUp);
-    main.appendChild(btnDown);
     row.appendChild(main);
 
     // Notes panel
