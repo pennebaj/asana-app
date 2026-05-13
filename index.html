@@ -121,13 +121,12 @@
 
     .task-row {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       background: #fff;
       border-radius: 8px;
       padding: 14px 20px;
       margin-bottom: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      gap: 20px;
       transition: opacity 0.5s ease, transform 0.5s ease, margin-bottom 0.5s ease, padding 0.5s ease;
     }
     body.dark .task-row { background: #1e1e1e; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
@@ -139,6 +138,31 @@
       padding-bottom: 0;
       pointer-events: none;
     }
+
+    .task-row-main {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Notes panel */
+    .task-notes {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+    .task-notes.open { max-height: 600px; }
+    .task-notes-inner {
+      padding-top: 12px;
+      padding-left: 46px;
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      cursor: pointer;
+    }
+    body.dark .task-notes-inner { color: #999; }
 
     /* Checkbox — square with rounded corners */
     .task-check {
@@ -355,7 +379,7 @@
   function loadTasks() {
     return request('GET',
       '/projects/' + PROJECT + '/tasks' +
-      '?opt_fields=name,due_on,completed' +
+      '?opt_fields=name,due_on,completed,notes' +
       '&completed_since=now' +
       '&limit=100'
     ).then(function (res) {
@@ -405,6 +429,9 @@
     row.dataset.gid = task.gid;
     row.dataset.due = task.due_on;
 
+    // Main row (checkbox + name + due + snooze)
+    var main = el('div', 'task-row-main');
+
     // Square checkbox
     var check = el('div', 'task-check');
     check.setAttribute('role', 'checkbox');
@@ -424,10 +451,29 @@
     snooze.title = 'Push due date forward 1 day';
     snooze.innerHTML = '&#8594;';
 
-    row.appendChild(check);
-    row.appendChild(name);
-    row.appendChild(due);
-    row.appendChild(snooze);
+    main.appendChild(check);
+    main.appendChild(name);
+    main.appendChild(due);
+    main.appendChild(snooze);
+    row.appendChild(main);
+
+    // Notes panel
+    var notes = task.notes && task.notes.trim();
+    if (notes) {
+      name.style.cursor = 'pointer';
+      var panel = el('div', 'task-notes');
+      var inner = el('div', 'task-notes-inner');
+      inner.textContent = notes;
+      panel.appendChild(inner);
+      row.appendChild(panel);
+
+      name.addEventListener('click', function () {
+        panel.classList.toggle('open');
+      });
+      inner.addEventListener('click', function () {
+        panel.classList.remove('open');
+      });
+    }
 
     function doComplete() {
       if (check.classList.contains('checked')) return;
