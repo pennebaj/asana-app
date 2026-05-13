@@ -391,7 +391,12 @@
     ).then(function (res) {
       return res.data
         .filter(function (t) { return !t.completed && t.due_on; })
-        .sort(function (a, b) { return a.due_on < b.due_on ? -1 : 1; });
+        .map(function (t, i) { t._order = i; return t; })
+        .sort(function (a, b) {
+          if (a.due_on < b.due_on) return -1;
+          if (a.due_on > b.due_on) return 1;
+          return a._order - b._order;  // preserve Asana order within same day
+        });
     });
   }
 
