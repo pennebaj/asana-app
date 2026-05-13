@@ -470,6 +470,32 @@
     return result;
   }
 
+  // ── Swap animation (FLIP) ────────────────────────────
+  function animateSwap(rowA, rowB, doSwap) {
+    var topA = rowA.getBoundingClientRect().top;
+    var topB = rowB.getBoundingClientRect().top;
+
+    doSwap();
+
+    var deltaA = topA - rowA.getBoundingClientRect().top;
+    var deltaB = topB - rowB.getBoundingClientRect().top;
+
+    // Snap back to original positions instantly
+    rowA.style.transition = 'none';
+    rowB.style.transition = 'none';
+    rowA.style.transform = 'translateY(' + deltaA + 'px)';
+    rowB.style.transform = 'translateY(' + deltaB + 'px)';
+
+    // Force reflow so the browser registers the starting position
+    void rowA.offsetHeight;
+
+    // Animate to final positions using the existing CSS transition
+    rowA.style.transition = '';
+    rowB.style.transition = '';
+    rowA.style.transform = '';
+    rowB.style.transform = '';
+  }
+
   // ── Drag and drop ─────────────────────────────────────
   var drag = { active: false, row: null };
 
@@ -665,7 +691,10 @@
     btnUp.addEventListener('click', function () {
       var prev = row.previousElementSibling;
       while (prev && !prev.classList.contains('task-row')) prev = prev.previousElementSibling;
-      if (prev) { row.parentNode.insertBefore(row, prev); saveOrder(); }
+      if (prev) {
+        animateSwap(row, prev, function () { row.parentNode.insertBefore(row, prev); });
+        saveOrder();
+      }
     });
 
     var btnDown = el('button', 'btn-move');
@@ -674,7 +703,10 @@
     btnDown.addEventListener('click', function () {
       var next = row.nextElementSibling;
       while (next && !next.classList.contains('task-row')) next = next.nextElementSibling;
-      if (next) { row.parentNode.insertBefore(next, row); saveOrder(); }
+      if (next) {
+        animateSwap(row, next, function () { row.parentNode.insertBefore(next, row); });
+        saveOrder();
+      }
     });
 
     main.appendChild(handle);
