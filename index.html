@@ -143,7 +143,22 @@
 
     .task-row-main { display: flex; align-items: center; }
 
-    /* Drag handle */
+    /* Reorder button */
+    .btn-reorder {
+      padding: 6px 14px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #444;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .btn-reorder.active { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+    body.dark .btn-reorder { background: #2a2a2a; border-color: #444; color: #ccc; }
+    body.dark .btn-reorder.active { background: #4a90e2; border-color: #4a90e2; color: #fff; }
+
+    /* Drag handle — hidden until reorder mode */
     .drag-handle {
       flex-shrink: 0;
       cursor: grab;
@@ -155,9 +170,33 @@
       user-select: none;
       touch-action: none;
       letter-spacing: -1px;
+      display: none;
     }
     .drag-handle:active { cursor: grabbing; }
     body.dark .drag-handle { color: #555; }
+    #app.reorder-mode .drag-handle { display: block; }
+
+    /* Up / down buttons — hidden until reorder mode */
+    .btn-move {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      background: #f0f4ff;
+      border: 1px solid #c8d8f8;
+      border-radius: 6px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: #4a90e2;
+      font-size: 1rem;
+      transition: background 0.15s;
+      margin-left: 6px;
+    }
+    .btn-move:hover { background: #d8e8ff; }
+    body.dark .btn-move { background: #1a2540; border-color: #2a3f6f; }
+    body.dark .btn-move:hover { background: #223060; }
+    #app.reorder-mode .btn-move { display: flex; }
 
     /* Checkbox */
     .task-check {
@@ -289,6 +328,7 @@
     <h1>My Tasks</h1>
     <div class="header-actions">
       <button class="btn-dark" id="dark-btn" title="Toggle dark mode">&#9790;</button>
+      <button class="btn-reorder" id="reorder-btn">Reorder</button>
       <button class="btn-refresh" id="refresh-btn">&#8635; Refresh</button>
       <button class="btn-signout" id="signout-btn">Sign out</button>
     </div>
@@ -604,11 +644,32 @@
     snooze.title = 'Push due date forward 1 day';
     snooze.innerHTML = '&#8594;';
 
+    // Up / down buttons
+    var btnUp = el('button', 'btn-move');
+    btnUp.innerHTML = '&#8593;';
+    btnUp.title = 'Move up';
+    btnUp.addEventListener('click', function () {
+      var prev = row.previousElementSibling;
+      while (prev && !prev.classList.contains('task-row')) prev = prev.previousElementSibling;
+      if (prev) { row.parentNode.insertBefore(row, prev); saveOrder(); }
+    });
+
+    var btnDown = el('button', 'btn-move');
+    btnDown.innerHTML = '&#8595;';
+    btnDown.title = 'Move down';
+    btnDown.addEventListener('click', function () {
+      var next = row.nextElementSibling;
+      while (next && !next.classList.contains('task-row')) next = next.nextElementSibling;
+      if (next) { row.parentNode.insertBefore(next, row); saveOrder(); }
+    });
+
     main.appendChild(handle);
     main.appendChild(check);
     main.appendChild(name);
     main.appendChild(due);
     main.appendChild(snooze);
+    main.appendChild(btnUp);
+    main.appendChild(btnDown);
     row.appendChild(main);
 
     // Notes panel
@@ -713,6 +774,12 @@
   // ── Boot ──────────────────────────────────────────────
   applyDark(isDark());
   document.getElementById('dark-btn').addEventListener('click', toggleDark);
+
+  document.getElementById('reorder-btn').addEventListener('click', function () {
+    var app = document.getElementById('app');
+    var active = app.classList.toggle('reorder-mode');
+    this.classList.toggle('active', active);
+  });
   document.getElementById('save-pat-btn').addEventListener('click', function () {
     var val = document.getElementById('pat-input').value.trim();
     if (!val) { document.getElementById('setup-error').textContent = 'Please paste your token.'; return; }
