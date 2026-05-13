@@ -310,8 +310,8 @@
   function todayStr() {
     var d = new Date();
     return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart('0', 2) + '-' +
-      String(d.getDate()).padStart('0', 2);
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
   }
 
   function dateClass(s) {
@@ -326,8 +326,8 @@
     var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     d.setDate(d.getDate() + 1);
     return d.getFullYear() + '-' +
-      String(d.getMonth() + 1).padStart('0', 2) + '-' +
-      String(d.getDate()).padStart('0', 2);
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
   }
 
   // ── Dark mode ─────────────────────────────────────────
