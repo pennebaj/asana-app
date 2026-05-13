@@ -76,7 +76,8 @@
       margin-bottom: 20px;
     }
     .app-header h1 { font-size: 1.3rem; }
-    .header-actions { display: flex; gap: 16px; align-items: center; }
+    .header-actions { display: flex; align-items: center; }
+    .header-actions > * + * { margin-left: 16px; }
     .btn-refresh {
       padding: 6px 14px;
       background: #fff;
@@ -446,7 +447,7 @@
 
     // Due date
     var due = el('span', 'task-due ' + dateClass(task.due_on));
-    due.textContent = formatDate(task.due_on);
+    due.textContent = task.due_on === todayStr() ? 'Today' : formatDate(task.due_on);
 
     // Snooze (+1 day)
     var snooze = el('button', 'btn-snooze');
@@ -502,7 +503,7 @@
       var currentDue = row.dataset.due;
       snoozeTask(task.gid, currentDue).then(function (newDue) {
         row.dataset.due = newDue;
-        due.textContent = formatDate(newDue);
+        due.textContent = newDue === todayStr() ? 'Today' : formatDate(newDue);
         due.className = 'task-due ' + dateClass(newDue);
         repositionRow(row, newDue);
         snooze.disabled = false;
