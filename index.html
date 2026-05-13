@@ -401,6 +401,7 @@
       results.forEach(function (tasks) {
         tasks.forEach(function (t) { all.push(t); });
       });
+      console.log('Raw API order:', all.map(function(t){ return t.name + ' [' + t.due_on + ']'; }));
       return all
         .filter(function (t) { return !t.completed && t.due_on; })
         .map(function (t, i) { t._order = i; return t; })
