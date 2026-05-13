@@ -14,10 +14,7 @@
       min-height: 100vh;
       transition: background 0.2s, color 0.2s;
     }
-    body.dark {
-      background: #141414;
-      color: #e0e0e0;
-    }
+    body.dark { background: #141414; color: #e0e0e0; }
 
     /* ── Setup screen ── */
     #setup {
@@ -91,7 +88,6 @@
     body.dark .btn-refresh { background: #2a2a2a; border-color: #444; color: #ccc; }
     .btn-refresh:hover { background: #f0f0f0; }
     body.dark .btn-refresh:hover { background: #333; }
-
     .btn-dark {
       padding: 6px 12px;
       background: #fff;
@@ -106,7 +102,6 @@
     body.dark .btn-dark { background: #2a2a2a; border-color: #444; color: #ccc; }
     .btn-dark:hover { background: #f0f0f0; }
     body.dark .btn-dark:hover { background: #333; }
-
     .btn-signout {
       padding: 6px 14px;
       background: none;
@@ -132,6 +127,11 @@
     }
     body.dark .task-row { background: #1e1e1e; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .task-row.new-day { margin-top: 18px; }
+    .task-row.dragging { opacity: 0.35; }
+    .task-row.drop-above { box-shadow: 0 -3px 0 #4a90e2, 0 1px 4px rgba(0,0,0,0.07); }
+    .task-row.drop-below { box-shadow: 0 3px 0 #4a90e2, 0 1px 4px rgba(0,0,0,0.07); }
+    body.dark .task-row.drop-above { box-shadow: 0 -3px 0 #4a90e2, 0 1px 4px rgba(0,0,0,0.3); }
+    body.dark .task-row.drop-below { box-shadow: 0 3px 0 #4a90e2, 0 1px 4px rgba(0,0,0,0.3); }
     .task-row.fading {
       opacity: 0;
       transform: translateX(30px);
@@ -141,34 +141,25 @@
       pointer-events: none;
     }
 
-    .task-row-main {
-      display: flex;
-      align-items: center;
-    }
-    .task-check { margin-right: 20px; }
-    .task-due { margin-left: 12px; }
-    .btn-snooze { margin-left: 12px; }
+    .task-row-main { display: flex; align-items: center; }
 
-    /* Notes panel */
-    .task-notes {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.3s ease;
+    /* Drag handle */
+    .drag-handle {
+      flex-shrink: 0;
+      cursor: grab;
+      color: #ccc;
+      font-size: 1.05rem;
+      line-height: 1;
+      margin-right: 10px;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+      letter-spacing: -1px;
     }
-    .task-notes.open { max-height: 600px; }
-    .task-notes-inner {
-      padding-top: 12px;
-      padding-left: 46px;
-      font-size: 0.88rem;
-      color: #555;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-      cursor: pointer;
-    }
-    body.dark .task-notes-inner { color: #999; }
+    .drag-handle:active { cursor: grabbing; }
+    body.dark .drag-handle { color: #555; }
 
-    /* Checkbox — square with rounded corners */
+    /* Checkbox */
     .task-check {
       flex-shrink: 0;
       width: 32px;
@@ -180,6 +171,7 @@
       align-items: center;
       justify-content: center;
       transition: border-color 0.15s, background 0.15s;
+      margin-right: 20px;
     }
     body.dark .task-check { border-color: #555; }
     .task-check:hover { border-color: #4a90e2; }
@@ -212,13 +204,14 @@
       white-space: nowrap;
       min-width: 54px;
       text-align: right;
+      margin-left: 12px;
       padding: 0 8px;
     }
     body.dark .task-due { color: #888; }
-    body.dark .task-due.overdue { color: #e74c3c; }
-    body.dark .task-due.today { color: #e67e22; }
     .task-due.overdue { color: #c0392b; font-weight: 600; }
-    .task-due.today { color: #e67e22; font-weight: 600; }
+    .task-due.today   { color: #e67e22; font-weight: 600; }
+    body.dark .task-due.overdue { color: #e74c3c; }
+    body.dark .task-due.today   { color: #e67e22; }
 
     /* Snooze button */
     .btn-snooze {
@@ -236,19 +229,30 @@
       font-size: 1.1rem;
       transition: background 0.15s;
       line-height: 1;
+      margin-left: 12px;
     }
     body.dark .btn-snooze { background: #1a2540; border-color: #2a3f6f; }
     .btn-snooze:hover { background: #d8e8ff; }
     body.dark .btn-snooze:hover { background: #223060; }
     .btn-snooze:disabled { opacity: 0.4; cursor: default; }
 
-    /* Loading / empty / error states */
-    .state-msg {
-      text-align: center;
-      padding: 48px 16px;
-      color: #888;
-      font-size: 0.95rem;
+    /* Notes panel */
+    .task-notes { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+    .task-notes.open { max-height: 600px; }
+    .task-notes-inner {
+      padding-top: 12px;
+      padding-left: 62px;
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      cursor: pointer;
     }
+    body.dark .task-notes-inner { color: #999; }
+
+    /* Loading / empty / error states */
+    .state-msg { text-align: center; padding: 48px 16px; color: #888; font-size: 0.95rem; }
     .state-msg.error { color: #c0392b; }
     .spinner {
       display: inline-block;
@@ -304,20 +308,19 @@
     '1201435555556259', // Do next week
     '1201435555556261'  // Do later
   ];
-  var MONTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // ── Helpers ────────────────────────────────────────────
-
-  function getToken() { return localStorage.getItem('asana_pat') || ''; }
-  function saveToken(t) { localStorage.setItem('asana_pat', t.trim()); }
-  function clearToken() { localStorage.removeItem('asana_pat'); }
-
-  // Zero-pad polyfill for older envs
+  // ── Polyfill ───────────────────────────────────────────
   String.prototype.padStart = String.prototype.padStart || function (len, fill) {
     var s = String(this);
     while (s.length < len) s = (fill || ' ') + s;
     return s;
   };
+
+  // ── Helpers ────────────────────────────────────────────
+  function getToken() { return localStorage.getItem('asana_pat') || ''; }
+  function saveToken(t) { localStorage.setItem('asana_pat', t.trim()); }
+  function clearToken() { localStorage.removeItem('asana_pat'); }
 
   function request(method, path, body) {
     return new Promise(function (resolve, reject) {
@@ -351,15 +354,15 @@
   }
 
   function dateClass(s) {
-    var today = todayStr();
-    if (s < today) return 'overdue';
-    if (s === today) return 'today';
+    var t = todayStr();
+    if (s < t) return 'overdue';
+    if (s === t) return 'today';
     return '';
   }
 
   function addOneDay(s) {
-    var parts = s.split('-');
-    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    var p = s.split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
     d.setDate(d.getDate() + 1);
     return d.getFullYear() + '-' +
       String(d.getMonth() + 1).padStart(2, '0') + '-' +
@@ -367,55 +370,181 @@
   }
 
   // ── Dark mode ─────────────────────────────────────────
-
   function isDark() { return localStorage.getItem('dark') === '1'; }
-
   function applyDark(dark) {
     if (dark) {
       document.body.classList.add('dark');
-      document.getElementById('dark-btn').innerHTML = '&#9728;'; // ☀
+      document.getElementById('dark-btn').innerHTML = '&#9728;';
     } else {
       document.body.classList.remove('dark');
-      document.getElementById('dark-btn').innerHTML = '&#9790;'; // ☾
+      document.getElementById('dark-btn').innerHTML = '&#9790;';
     }
   }
-
   function toggleDark() {
     var next = !isDark();
     localStorage.setItem('dark', next ? '1' : '0');
     applyDark(next);
   }
 
-  // ── Data ──────────────────────────────────────────────
+  // ── Custom order ──────────────────────────────────────
+  function getSavedOrder() {
+    try { return JSON.parse(localStorage.getItem('task_order') || '[]'); } catch(e) { return []; }
+  }
 
+  function saveOrder() {
+    var rows = document.querySelectorAll('#task-list .task-row');
+    var gids = [];
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].dataset.gid) gids.push(rows[i].dataset.gid);
+    }
+    localStorage.setItem('task_order', JSON.stringify(gids));
+  }
+
+  function applyOrder(tasks) {
+    var order = getSavedOrder();
+    if (!order.length) return tasks;
+    var map = {};
+    order.forEach(function (gid, i) { map[gid] = i; });
+    var MAX = order.length + tasks.length;
+    return tasks.slice().sort(function (a, b) {
+      var ai = map[a.gid] !== undefined ? map[a.gid] : MAX;
+      var bi = map[b.gid] !== undefined ? map[b.gid] : MAX;
+      if (ai !== bi) return ai - bi;
+      if (a.due_on < b.due_on) return -1;
+      if (a.due_on > b.due_on) return 1;
+      return (a._order || 0) - (b._order || 0);
+    });
+  }
+
+  // ── Drag and drop ─────────────────────────────────────
+  var drag = { active: false, row: null };
+
+  function clearDropIndicators() {
+    var rows = document.querySelectorAll('#task-list .task-row');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.remove('drop-above', 'drop-below');
+    }
+  }
+
+  function rowAtPoint(x, y) {
+    // Temporarily hide dragged row so it doesn't block hit-testing
+    var src = drag.row;
+    var orig = src ? src.style.display : null;
+    if (src) src.style.display = 'none';
+    var el = document.elementFromPoint(x, y);
+    if (src) src.style.display = orig || '';
+    if (!el) return null;
+    while (el && el.tagName !== 'LI') el = el.parentNode;
+    if (!el || !el.classList || !el.classList.contains('task-row')) return null;
+    if (el === drag.row) return null;
+    return el;
+  }
+
+  function dropAt(target, clientY) {
+    if (!drag.row || !target) return;
+    var rect = target.getBoundingClientRect();
+    var before = clientY < rect.top + rect.height / 2;
+    var list = drag.row.parentNode;
+    if (before) list.insertBefore(drag.row, target);
+    else list.insertBefore(drag.row, target.nextSibling);
+    saveOrder();
+  }
+
+  function addDragHandlers(row, handle) {
+    // ── Mouse ──────────────────────────────────────────
+    handle.addEventListener('mousedown', function () {
+      row.setAttribute('draggable', 'true');
+    });
+    row.addEventListener('dragstart', function (e) {
+      drag.active = true;
+      drag.row = row;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', row.dataset.gid);
+      setTimeout(function () { row.classList.add('dragging'); }, 0);
+    });
+    row.addEventListener('dragover', function (e) {
+      if (!drag.active || drag.row === row) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      clearDropIndicators();
+      var rect = row.getBoundingClientRect();
+      row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drop-above' : 'drop-below');
+    });
+    row.addEventListener('dragleave', function () {
+      row.classList.remove('drop-above', 'drop-below');
+    });
+    row.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropAt(row, e.clientY);
+      clearDropIndicators();
+    });
+    row.addEventListener('dragend', function () {
+      row.removeAttribute('draggable');
+      row.classList.remove('dragging');
+      clearDropIndicators();
+      drag.active = false;
+      drag.row = null;
+    });
+
+    // ── Touch ───────────────────────────────────────────
+    var lastTX = 0, lastTY = 0;
+
+    handle.addEventListener('touchstart', function (e) {
+      drag.active = true;
+      drag.row = row;
+      lastTX = e.touches[0].clientX;
+      lastTY = e.touches[0].clientY;
+      row.classList.add('dragging');
+    }, { passive: true });
+
+    handle.addEventListener('touchmove', function (e) {
+      if (!drag.active) return;
+      e.preventDefault();
+      var t = e.touches[0];
+      lastTX = t.clientX; lastTY = t.clientY;
+      clearDropIndicators();
+      var target = rowAtPoint(t.clientX, t.clientY);
+      if (target) {
+        var rect = target.getBoundingClientRect();
+        target.classList.add(t.clientY < rect.top + rect.height / 2 ? 'drop-above' : 'drop-below');
+      }
+    }, { passive: false });
+
+    handle.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0];
+      var target = rowAtPoint(t.clientX, t.clientY);
+      if (target) dropAt(target, t.clientY);
+      row.classList.remove('dragging');
+      clearDropIndicators();
+      drag.active = false;
+      drag.row = null;
+    });
+  }
+
+  // ── Data ──────────────────────────────────────────────
   function loadTasks() {
     var fetches = SECTIONS.map(function (gid) {
       return request('GET',
         '/sections/' + gid + '/tasks' +
-        '?opt_fields=name,due_on,completed,notes' +
-        '&limit=100'
+        '?opt_fields=name,due_on,completed,notes&limit=100'
       ).then(function (res) { return res.data; });
     });
     return Promise.all(fetches).then(function (results) {
       var all = [];
-      results.forEach(function (tasks) {
-        tasks.forEach(function (t) { all.push(t); });
-      });
-      console.log('Raw API order:', all.map(function(t){ return t.name + ' [' + t.due_on + ']'; }));
-      return all
+      results.forEach(function (tasks) { tasks.forEach(function (t) { all.push(t); }); });
+      var filtered = all
         .filter(function (t) { return !t.completed && t.due_on; })
         .map(function (t, i) { t._order = i; return t; })
         .sort(function (a, b) {
           if (a.due_on < b.due_on) return -1;
           if (a.due_on > b.due_on) return 1;
-          return a._order - b._order; // preserve Asana order within same day
+          return a._order - b._order;
         });
+      return applyOrder(filtered);
     });
   }
 
-  function completeTask(gid) {
-    return request('PUT', '/tasks/' + gid, { completed: true });
-  }
+  function completeTask(gid) { return request('PUT', '/tasks/' + gid, { completed: true }); }
 
   function snoozeTask(gid, currentDue) {
     var newDue = addOneDay(currentDue);
@@ -423,7 +552,6 @@
   }
 
   // ── Render ────────────────────────────────────────────
-
   function el(tag, cls) {
     var e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -432,8 +560,7 @@
 
   function showState(msg, isError) {
     var list = document.getElementById('task-list');
-    var cls = 'state-msg' + (isError ? ' error' : '');
-    list.innerHTML = '<li class="' + cls + '">' + msg + '</li>';
+    list.innerHTML = '<li class="state-msg' + (isError ? ' error' : '') + '">' + msg + '</li>';
   }
 
   function showLoading() {
@@ -443,20 +570,22 @@
 
   function fadeOutRow(row) {
     row.classList.add('fading');
-    setTimeout(function () {
-      if (row.parentNode) row.parentNode.removeChild(row);
-    }, 550);
+    setTimeout(function () { if (row.parentNode) row.parentNode.removeChild(row); }, 550);
   }
 
   function buildRow(task) {
     var row = el('li', 'task-row');
-    row.dataset.gid = task.gid;
-    row.dataset.due = task.due_on;
+    row.dataset.gid  = task.gid;
+    row.dataset.due  = task.due_on;
 
-    // Main row (checkbox + name + due + snooze)
     var main = el('div', 'task-row-main');
 
-    // Square checkbox
+    // Drag handle (⋮⋮)
+    var handle = el('div', 'drag-handle');
+    handle.innerHTML = '&#8942;&#8942;';
+    handle.title = 'Drag to reorder';
+
+    // Checkbox
     var check = el('div', 'task-check');
     check.setAttribute('role', 'checkbox');
     check.setAttribute('aria-checked', 'false');
@@ -470,11 +599,12 @@
     var due = el('span', 'task-due ' + dateClass(task.due_on));
     due.textContent = task.due_on === todayStr() ? 'Today' : formatDate(task.due_on);
 
-    // Snooze (+1 day)
+    // Snooze
     var snooze = el('button', 'btn-snooze');
     snooze.title = 'Push due date forward 1 day';
     snooze.innerHTML = '&#8594;';
 
+    main.appendChild(handle);
     main.appendChild(check);
     main.appendChild(name);
     main.appendChild(due);
@@ -490,15 +620,11 @@
       inner.textContent = notes;
       panel.appendChild(inner);
       row.appendChild(panel);
-
-      name.addEventListener('click', function () {
-        panel.classList.toggle('open');
-      });
-      inner.addEventListener('click', function () {
-        panel.classList.remove('open');
-      });
+      name.addEventListener('click', function () { panel.classList.toggle('open'); });
+      inner.addEventListener('click', function () { panel.classList.remove('open'); });
     }
 
+    // Complete
     function doComplete() {
       if (check.classList.contains('checked')) return;
       check.classList.add('checked');
@@ -513,16 +639,15 @@
         alert('Could not complete task: ' + err);
       });
     }
-
     check.addEventListener('click', doComplete);
     check.addEventListener('keydown', function (e) {
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); doComplete(); }
     });
 
+    // Snooze
     snooze.addEventListener('click', function () {
       snooze.disabled = true;
-      var currentDue = row.dataset.due;
-      snoozeTask(task.gid, currentDue).then(function (newDue) {
+      snoozeTask(task.gid, row.dataset.due).then(function (newDue) {
         row.dataset.due = newDue;
         due.textContent = newDue === todayStr() ? 'Today' : formatDate(newDue);
         due.className = 'task-due ' + dateClass(newDue);
@@ -534,6 +659,7 @@
       });
     });
 
+    addDragHandlers(row, handle);
     return row;
   }
 
@@ -542,22 +668,17 @@
     var rows = list.querySelectorAll('li.task-row');
     var insertBefore = null;
     for (var i = 0; i < rows.length; i++) {
-      if (rows[i] !== row && rows[i].dataset.due > newDue) {
-        insertBefore = rows[i];
-        break;
-      }
+      if (rows[i] !== row && rows[i].dataset.due > newDue) { insertBefore = rows[i]; break; }
     }
-    if (insertBefore) { list.insertBefore(row, insertBefore); }
-    else { list.appendChild(row); }
+    if (insertBefore) list.insertBefore(row, insertBefore);
+    else list.appendChild(row);
+    saveOrder();
   }
 
   function renderTasks(tasks) {
     var list = document.getElementById('task-list');
     list.innerHTML = '';
-    if (tasks.length === 0) {
-      showState('All caught up! No tasks with due dates.');
-      return;
-    }
+    if (!tasks.length) { showState('All caught up! No tasks with due dates.'); return; }
     var lastDue = null;
     tasks.forEach(function (task) {
       var row = buildRow(task);
@@ -568,7 +689,6 @@
   }
 
   // ── App flow ──────────────────────────────────────────
-
   function showSetup(errMsg) {
     document.getElementById('setup').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
@@ -584,20 +704,15 @@
     showLoading();
     loadTasks().then(renderTasks).catch(function (err) {
       if (err && err.indexOf && err.indexOf('401') > -1) {
-        clearToken();
-        showSetup('Token invalid or expired. Please re-enter.');
-        return;
+        clearToken(); showSetup('Token invalid or expired. Please re-enter.'); return;
       }
       showState('Error loading tasks: ' + err, true);
     });
   }
 
   // ── Boot ──────────────────────────────────────────────
-
   applyDark(isDark());
-
   document.getElementById('dark-btn').addEventListener('click', toggleDark);
-
   document.getElementById('save-pat-btn').addEventListener('click', function () {
     var val = document.getElementById('pat-input').value.trim();
     if (!val) { document.getElementById('setup-error').textContent = 'Please paste your token.'; return; }
@@ -605,13 +720,10 @@
     showApp();
     fetchAndRender();
   });
-
   document.getElementById('pat-input').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') document.getElementById('save-pat-btn').click();
   });
-
   document.getElementById('refresh-btn').addEventListener('click', fetchAndRender);
-
   document.getElementById('signout-btn').addEventListener('click', function () {
     clearToken();
     showSetup('');
