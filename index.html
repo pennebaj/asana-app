@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tasks</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* ── Setup screen ── */
+    #setup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .setup-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 32px 28px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .setup-card h1 { font-size: 1.4rem; margin-bottom: 10px; }
+    .setup-card p { font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
+    .setup-card a { color: #4a90e2; }
+    .setup-card input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      font-family: monospace;
+    }
+    .setup-card input:focus { outline: none; border-color: #4a90e2; }
+    .btn-primary {
+      width: 100%;
+      padding: 11px;
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #357abd; }
+    .setup-error { color: #c0392b; font-size: 0.85rem; margin-top: 10px; }
+
+    /* ── Main app ── */
+    #app { display: none; max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .app-header h1 { font-size: 1.3rem; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-refresh {
+      padding: 6px 14px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #444;
+    }
+    .btn-refresh:hover { background: #f0f0f0; }
+    .btn-signout {
+      padding: 6px 14px;
+      background: none;
+      border: none;
+      font-size: 0.85rem;
+      color: #888;
+      cursor: pointer;
+    }
+    .btn-signout:hover { color: #c0392b; }
+
+    /* ── Task list ── */
+    #task-list { list-style: none; }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 13px 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      gap: 12px;
+      transition: opacity 0.5s ease, transform 0.5s ease, margin-bottom 0.5s ease, padding 0.5s ease;
+    }
+    .task-row.fading {
+      opacity: 0;
+      transform: translateX(30px);
+      margin-bottom: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      pointer-events: none;
+    }
+
+    /* Checkbox */
+    .task-check {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #bbb;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .task-check:hover { border-color: #4a90e2; }
+    .task-check.checked { border-color: #27ae60; background: #27ae60; }
+    .task-check.checked::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 11px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    /* Task name */
+    .task-name {
+      flex: 1 1 0;
+      font-size: 0.97rem;
+      line-height: 1.4;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    /* Due date */
+    .task-due {
+      flex-shrink: 0;
+      font-size: 0.82rem;
+      color: #777;
+      white-space: nowrap;
+      min-width: 54px;
+      text-align: right;
+    }
+    .task-due.overdue { color: #c0392b; font-weight: 600; }
+    .task-due.today { color: #e67e22; font-weight: 600; }
+
+    /* Snooze button */
+    .btn-snooze {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      background: #f0f4ff;
+      border: 1px solid #c8d8f8;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4a90e2;
+      font-size: 1.1rem;
+      transition: background 0.15s;
+      line-height: 1;
+    }
+    .btn-snooze:hover { background: #d8e8ff; }
+    .btn-snooze:disabled { opacity: 0.4; cursor: default; }
+
+    /* Loading / empty / error states */
+    .state-msg {
+      text-align: center;
+      padding: 48px 16px;
+      color: #888;
+      font-size: 0.95rem;
+    }
+    .state-msg.error { color: #c0392b; }
+    .spinner {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid #ddd;
+      border-top-color: #4a90e2;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Setup screen -->
+<div id="setup">
+  <div class="setup-card">
+    <h1>My Tasks</h1>
+    <p>Enter your Asana Personal Access Token to get started.<br>
+      Create one at <a href="https://app.asana.com/0/my-apps" target="_blank">app.asana.com/0/my-apps</a>.
+      It's saved only in your browser.</p>
+    <input type="password" id="pat-input" placeholder="Paste your token here" autocomplete="off">
+    <button class="btn-primary" id="save-pat-btn">Connect to Asana</button>
+    <div class="setup-error" id="setup-error"></div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <div class="app-header">
+    <h1>My Tasks</h1>
+    <div class="header-actions">
+      <button class="btn-refresh" id="refresh-btn">&#8635; Refresh</button>
+      <button class="btn-signout" id="signout-btn">Sign out</button>
+    </div>
+  </div>
+  <ul id="task-list"></ul>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API   = 'https://app.asana.com/api/1.0';
+  var PROJECT = '1201435555554967';
+  var MONTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── Helpers ────────────────────────────────────────────
+
+  function getToken() { return localStorage.getItem('asana_pat') || ''; }
+  function saveToken(t) { localStorage.setItem('asana_pat', t.trim()); }
+  function clearToken() { localStorage.removeItem('asana_pat'); }
+
+  function request(method, path, body) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open(method, API + path, true);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getToken());
+      xhr.setRequestHeader('Accept', 'application/json');
+      if (body) xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function () {
+        try {
+          var json = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) { resolve(json); }
+          else { reject(json.errors ? json.errors[0].message : 'HTTP ' + xhr.status); }
+        } catch (e) { reject('Parse error'); }
+      };
+      xhr.onerror = function () { reject('Network error'); };
+      xhr.send(body ? JSON.stringify({ data: body }) : null);
+    });
+  }
+
+  function formatDate(s) {
+    var parts = s.split('-');
+    return MONTHS[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+  }
+
+  function dateClass(s) {
+    var today = todayStr();
+    if (s < today) return 'overdue';
+    if (s === today) return 'today';
+    return '';
+  }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart('0', 2) + '-' +
+      String(d.getDate()).padStart('0', 2);
+  }
+
+  // Zero-pad without String.prototype.padStart in older envs
+  String.prototype.padStart = String.prototype.padStart || function (len, fill) {
+    var s = String(this);
+    while (s.length < len) s = (fill || ' ') + s;
+    return s;
+  };
+
+  function addOneDay(s) {
+    var parts = s.split('-');
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    d.setDate(d.getDate() + 1);
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart('0', 2) + '-' +
+      String(d.getDate()).padStart('0', 2);
+  }
+
+  // ── Data ──────────────────────────────────────────────
+
+  function loadTasks() {
+    return request('GET',
+      '/projects/' + PROJECT + '/tasks' +
+      '?opt_fields=name,due_on,completed' +
+      '&completed_since=now' +
+      '&limit=100'
+    ).then(function (res) {
+      return res.data
+        .filter(function (t) { return !t.completed && t.due_on; })
+        .sort(function (a, b) { return a.due_on < b.due_on ? -1 : 1; });
+    });
+  }
+
+  function completeTask(gid) {
+    return request('PUT', '/tasks/' + gid, { completed: true });
+  }
+
+  function snoozeTask(gid, currentDue) {
+    var newDue = addOneDay(currentDue);
+    return request('PUT', '/tasks/' + gid, { due_on: newDue }).then(function () { return newDue; });
+  }
+
+  // ── Render ────────────────────────────────────────────
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html) e.innerHTML = html;
+    return e;
+  }
+
+  function showState(msg, isError) {
+    var list = document.getElementById('task-list');
+    var cls = 'state-msg' + (isError ? ' error' : '');
+    list.innerHTML = '<li class="' + cls + '">' + msg + '</li>';
+  }
+
+  function showLoading() {
+    var list = document.getElementById('task-list');
+    list.innerHTML = '<li class="state-msg"><div class="spinner"></div><br>Loading tasks…</li>';
+  }
+
+  function fadeOutRow(row) {
+    row.classList.add('fading');
+    setTimeout(function () {
+      if (row.parentNode) row.parentNode.removeChild(row);
+    }, 550);
+  }
+
+  function buildRow(task) {
+    var row = el('li', 'task-row');
+    row.dataset.gid = task.gid;
+    row.dataset.due = task.due_on;
+
+    // Checkbox circle
+    var check = el('div', 'task-check');
+    check.setAttribute('role', 'checkbox');
+    check.setAttribute('aria-checked', 'false');
+    check.setAttribute('tabindex', '0');
+
+    // Name
+    var name = el('span', 'task-name');
+    name.textContent = task.name;
+
+    // Due date
+    var due = el('span', 'task-due ' + dateClass(task.due_on));
+    due.textContent = formatDate(task.due_on);
+
+    // Snooze button (+1 day)
+    var snooze = el('button', 'btn-snooze');
+    snooze.title = 'Push due date forward 1 day';
+    snooze.innerHTML = '&#8594;';  // →
+
+    row.appendChild(check);
+    row.appendChild(name);
+    row.appendChild(due);
+    row.appendChild(snooze);
+
+    // Complete handler
+    function doComplete() {
+      if (check.classList.contains('checked')) return;
+      check.classList.add('checked');
+      check.setAttribute('aria-checked', 'true');
+      snooze.disabled = true;
+      completeTask(task.gid).then(function () {
+        fadeOutRow(row);
+      }).catch(function (err) {
+        check.classList.remove('checked');
+        check.setAttribute('aria-checked', 'false');
+        snooze.disabled = false;
+        alert('Could not complete task: ' + err);
+      });
+    }
+
+    check.addEventListener('click', doComplete);
+    check.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); doComplete(); }
+    });
+
+    // Snooze handler
+    snooze.addEventListener('click', function () {
+      snooze.disabled = true;
+      var currentDue = row.dataset.due;
+      snoozeTask(task.gid, currentDue).then(function (newDue) {
+        row.dataset.due = newDue;
+        due.textContent = formatDate(newDue);
+        due.className = 'task-due ' + dateClass(newDue);
+        // Re-sort: move row to correct position in list
+        repositionRow(row, newDue);
+        snooze.disabled = false;
+      }).catch(function (err) {
+        snooze.disabled = false;
+        alert('Could not update due date: ' + err);
+      });
+    });
+
+    return row;
+  }
+
+  function repositionRow(row, newDue) {
+    var list = document.getElementById('task-list');
+    var rows = list.querySelectorAll('li.task-row');
+    var insertBefore = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i] !== row && rows[i].dataset.due > newDue) {
+        insertBefore = rows[i];
+        break;
+      }
+    }
+    if (insertBefore) {
+      list.insertBefore(row, insertBefore);
+    } else {
+      list.appendChild(row);
+    }
+  }
+
+  function renderTasks(tasks) {
+    var list = document.getElementById('task-list');
+    list.innerHTML = '';
+    if (tasks.length === 0) {
+      showState('All caught up! No tasks with due dates.');
+      return;
+    }
+    tasks.forEach(function (task) {
+      list.appendChild(buildRow(task));
+    });
+  }
+
+  // ── App flow ──────────────────────────────────────────
+
+  function showSetup(errMsg) {
+    document.getElementById('setup').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    if (errMsg) document.getElementById('setup-error').textContent = errMsg;
+  }
+
+  function showApp() {
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+
+  function fetchAndRender() {
+    showLoading();
+    loadTasks().then(renderTasks).catch(function (err) {
+      if (err && err.indexOf && err.indexOf('401') > -1) {
+        showSetup('Token invalid or expired. Please re-enter.');
+        clearToken();
+        return;
+      }
+      showState('Error loading tasks: ' + err, true);
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────
+
+  document.getElementById('save-pat-btn').addEventListener('click', function () {
+    var val = document.getElementById('pat-input').value.trim();
+    if (!val) {
+      document.getElementById('setup-error').textContent = 'Please paste your token.';
+      return;
+    }
+    saveToken(val);
+    showApp();
+    fetchAndRender();
+  });
+
+  document.getElementById('pat-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('save-pat-btn').click();
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', fetchAndRender);
+
+  document.getElementById('signout-btn').addEventListener('click', function () {
+    clearToken();
+    showSetup('');
+    document.getElementById('pat-input').value = '';
+    document.getElementById('setup-error').textContent = '';
+  });
+
+  // Start
+  if (getToken()) {
+    showApp();
+    fetchAndRender();
+  } else {
+    showSetup('');
+  }
+
+})();
+</script>
+</body>
+</html>
