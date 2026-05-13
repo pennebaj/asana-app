@@ -298,6 +298,7 @@
 
   var API     = 'https://app.asana.com/api/1.0';
   var PROJECT = '1201435555554967';
+  var SECTION = '1208025876578761';
   var MONTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   // ── Helpers ────────────────────────────────────────────
@@ -384,9 +385,8 @@
 
   function loadTasks() {
     return request('GET',
-      '/projects/' + PROJECT + '/tasks' +
+      '/sections/' + SECTION + '/tasks' +
       '?opt_fields=name,due_on,completed,notes' +
-      '&completed_since=now' +
       '&limit=100'
     ).then(function (res) {
       return res.data
