@@ -131,6 +131,7 @@
       transition: opacity 0.5s ease, transform 0.5s ease, margin-bottom 0.5s ease, padding 0.5s ease;
     }
     body.dark .task-row { background: #1e1e1e; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+    .task-row.new-day { margin-top: 18px; }
     .task-row.fading {
       opacity: 0;
       transform: translateX(30px);
@@ -539,7 +540,13 @@
       showState('All caught up! No tasks with due dates.');
       return;
     }
-    tasks.forEach(function (task) { list.appendChild(buildRow(task)); });
+    var lastDue = null;
+    tasks.forEach(function (task) {
+      var row = buildRow(task);
+      if (lastDue !== null && task.due_on !== lastDue) row.classList.add('new-day');
+      lastDue = task.due_on;
+      list.appendChild(row);
+    });
   }
 
   // ── App flow ──────────────────────────────────────────
