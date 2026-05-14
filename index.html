@@ -154,7 +154,17 @@
       pointer-events: none;
     }
 
+    /* Float-based layout — universal fallback (works on old Kindle WebKit) */
     .task-row-main {
+      overflow: hidden; /* BFC clearfix — contains all floated children */
+      width: 100%;
+      min-height: 36px;
+    }
+
+    /* Right-side cluster (due date + snooze) floats to the far right */
+    .task-right {
+      float: right;
+      white-space: nowrap;
       display: -webkit-box;
       display: -webkit-flex;
       display: flex;
@@ -163,8 +173,20 @@
       -webkit-box-align: center;
       -webkit-align-items: center;
       align-items: center;
-      width: 100%;
-      overflow: hidden;
+    }
+
+    /* Modern-browser override — restore full flexbox when supported */
+    @supports (display: flex) {
+      .task-row-main {
+        display: flex;
+        -webkit-align-items: center;
+        align-items: center;
+      }
+      .task-right  { float: none; margin-left: auto; order: 10; }
+      .drag-handle { float: none; }
+      .btn-move    { float: none; }
+      .task-check  { float: none; }
+      .task-name   { -webkit-flex: 1 1 0; flex: 1 1 0; overflow: hidden; min-width: 0; }
     }
 
     /* Reorder button */
@@ -186,10 +208,11 @@
     .drag-handle {
       -webkit-flex-shrink: 0;
       flex-shrink: 0;
+      float: left;
       cursor: grab;
       color: #ccc;
       font-size: 1.05rem;
-      line-height: 1;
+      line-height: 36px;
       margin-right: 10px;
       -webkit-user-select: none;
       user-select: none;
@@ -205,6 +228,7 @@
     .btn-move {
       -webkit-flex-shrink: 0;
       flex-shrink: 0;
+      float: left;
       width: 30px;
       height: 30px;
       background: #f0f4ff;
@@ -212,10 +236,8 @@
       border-radius: 6px;
       cursor: pointer;
       display: none;
-      -webkit-align-items: center;
-      align-items: center;
-      -webkit-justify-content: center;
-      justify-content: center;
+      text-align: center;
+      line-height: 28px;
       color: #4a90e2;
       font-size: 1rem;
       transition: background 0.15s;
@@ -224,15 +246,14 @@
     .btn-move:hover { background: #d8e8ff; }
     body.dark .btn-move { background: #1a2540; border-color: #2a3f6f; }
     body.dark .btn-move:hover { background: #223060; }
-    #app.reorder-mode .btn-move { display: -webkit-flex; display: flex; }
+    #app.reorder-mode .btn-move { display: block; float: left; }
     #app.reorder-mode .btn-move + .task-check { margin-left: 10px; }
 
     /* Checkbox */
     .task-check {
       -webkit-flex-shrink: 0;
       flex-shrink: 0;
-      -webkit-align-self: center;
-      align-self: center;
+      float: left;
       width: 32px;
       height: 32px;
       border: 2px solid #bbb;
@@ -249,6 +270,7 @@
       justify-content: center;
       transition: border-color 0.15s, background 0.15s;
       margin-right: 20px;
+      margin-top: 2px;
     }
     body.dark .task-check { border-color: #555; }
     .task-check:hover { border-color: #4a90e2; }
@@ -264,18 +286,18 @@
       transform: rotate(45deg) translateY(-1px);
     }
 
-    /* Task name */
+    /* Task name — overflow:hidden creates a BFC that fills space between floats */
     .task-name {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1 1 0;
-      flex: 1 1 0;
+      display: block;
+      overflow: hidden;
       font-size: 0.97rem;
       line-height: 1.4;
-      min-width: 0;
       word-break: break-word;
+      padding-top: 6px;
+      padding-bottom: 6px;
     }
 
-    /* Due date */
+    /* Due date — lives inside .task-right (floated), no auto-margin needed */
     .task-due {
       -webkit-flex-shrink: 0;
       flex-shrink: 0;
@@ -284,7 +306,6 @@
       white-space: nowrap;
       min-width: 54px;
       text-align: right;
-      margin-left: auto;
       padding: 0 8px;
     }
     body.dark .task-due { color: #888; }
@@ -797,13 +818,17 @@ if (typeof Promise === 'undefined') {
       }
     });
 
+    // .task-right must be first in DOM so float:right works before the text
+    var right = el('div', 'task-right');
+    right.appendChild(due);
+    right.appendChild(snooze);
+
+    main.appendChild(right);
     main.appendChild(handle);
     main.appendChild(btnUp);
     main.appendChild(btnDown);
     main.appendChild(check);
     main.appendChild(name);
-    main.appendChild(due);
-    main.appendChild(snooze);
     row.appendChild(main);
 
     // Notes panel
