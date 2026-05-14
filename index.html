@@ -84,8 +84,12 @@
       display: flex;
       -webkit-align-items: center;
       align-items: center;
+      -webkit-flex-wrap: wrap;
+      flex-wrap: wrap;
+      gap: 8px;
+      -webkit-justify-content: flex-end;
+      justify-content: flex-end;
     }
-    .header-actions > * + * { margin-left: 16px; }
     .btn-refresh {
       padding: 6px 14px;
       background: #fff;
@@ -113,6 +117,21 @@
     body.dark .btn-dark { background: #2a2a2a; border-color: #444; color: #ccc; }
     .btn-dark:hover { background: #f0f0f0; }
     body.dark .btn-dark:hover { background: #333; }
+    .btn-zoom {
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #444;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    body.dark .btn-zoom { background: #2a2a2a; border-color: #444; color: #ccc; }
+    .btn-zoom:hover { background: #f0f0f0; }
+    body.dark .btn-zoom:hover { background: #333; }
     .btn-signout {
       padding: 6px 14px;
       background: none;
@@ -370,6 +389,8 @@
   <div class="app-header">
     <h1>My Tasks</h1>
     <div class="header-actions">
+      <button class="btn-zoom" id="zoom-out-btn" title="Zoom out">&#8722;</button>
+      <button class="btn-zoom" id="zoom-in-btn" title="Zoom in">&#43;</button>
       <button class="btn-dark" id="dark-btn" title="Toggle dark mode">&#9790;</button>
       <button class="btn-reorder" id="reorder-btn">Reorder</button>
       <button class="btn-refresh" id="refresh-btn">&#8635; Refresh</button>
@@ -490,6 +511,18 @@ if (typeof Promise === 'undefined') {
     return d.getFullYear() + '-' +
       String(d.getMonth() + 1).padStart(2, '0') + '-' +
       String(d.getDate()).padStart(2, '0');
+  }
+
+  // ── Zoom ──────────────────────────────────────────────
+  function getZoom() { return parseFloat(localStorage.getItem('zoom') || '1'); }
+  function applyZoom(z) {
+    document.getElementById('task-list').style.zoom = z;
+    localStorage.setItem('zoom', z);
+  }
+  function stepZoom(delta) {
+    var z = Math.round((getZoom() + delta) * 100) / 100;
+    z = Math.max(0.5, Math.min(2.0, z)); // clamp between 50% and 200%
+    applyZoom(z);
   }
 
   // ── Dark mode ─────────────────────────────────────────
@@ -909,6 +942,10 @@ if (typeof Promise === 'undefined') {
   }
 
   // ── Boot ──────────────────────────────────────────────
+  applyZoom(getZoom());
+  document.getElementById('zoom-in-btn').addEventListener('click', function () { stepZoom(0.03); });
+  document.getElementById('zoom-out-btn').addEventListener('click', function () { stepZoom(-0.03); });
+
   applyDark(isDark());
   document.getElementById('dark-btn').addEventListener('click', toggleDark);
 
