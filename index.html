@@ -18,8 +18,11 @@
 
     /* ── Setup screen ── */
     #setup {
+      display: -webkit-flex;
       display: flex;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: center;
       justify-content: center;
       min-height: 100vh;
       padding: 24px;
@@ -64,16 +67,24 @@
     .setup-error { color: #c0392b; font-size: 0.85rem; margin-top: 10px; }
 
     /* ── Main app ── */
-    #app { display: none; max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+    #app { display: none; max-width: 800px; min-width: 300px; margin: 0 auto; padding: 24px 12px; }
 
     .app-header {
+      display: -webkit-flex;
       display: flex;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: space-between;
       justify-content: space-between;
       margin-bottom: 20px;
     }
     .app-header h1 { font-size: 1.3rem; }
-    .header-actions { display: flex; align-items: center; }
+    .header-actions {
+      display: -webkit-flex;
+      display: flex;
+      -webkit-align-items: center;
+      align-items: center;
+    }
     .header-actions > * + * { margin-left: 16px; }
     .btn-refresh {
       padding: 6px 14px;
@@ -116,7 +127,9 @@
     #task-list { list-style: none; }
 
     .task-row {
+      display: -webkit-flex;
       display: flex;
+      -webkit-flex-direction: column;
       flex-direction: column;
       background: #fff;
       border-radius: 8px;
@@ -141,7 +154,7 @@
       pointer-events: none;
     }
 
-    .task-row-main { display: flex; align-items: center; }
+    .task-row-main { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
 
     /* Reorder button */
     .btn-reorder {
@@ -160,6 +173,7 @@
 
     /* Drag handle — hidden until reorder mode */
     .drag-handle {
+      -webkit-flex-shrink: 0;
       flex-shrink: 0;
       cursor: grab;
       color: #ccc;
@@ -178,6 +192,7 @@
 
     /* Up / down buttons — hidden until reorder mode */
     .btn-move {
+      -webkit-flex-shrink: 0;
       flex-shrink: 0;
       width: 30px;
       height: 30px;
@@ -186,7 +201,9 @@
       border-radius: 6px;
       cursor: pointer;
       display: none;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: center;
       justify-content: center;
       color: #4a90e2;
       font-size: 1rem;
@@ -196,19 +213,23 @@
     .btn-move:hover { background: #d8e8ff; }
     body.dark .btn-move { background: #1a2540; border-color: #2a3f6f; }
     body.dark .btn-move:hover { background: #223060; }
-    #app.reorder-mode .btn-move { display: flex; }
+    #app.reorder-mode .btn-move { display: -webkit-flex; display: flex; }
     #app.reorder-mode .btn-move + .task-check { margin-left: 10px; }
 
     /* Checkbox */
     .task-check {
+      -webkit-flex-shrink: 0;
       flex-shrink: 0;
       width: 32px;
       height: 32px;
       border: 2px solid #bbb;
       border-radius: 7px;
       cursor: pointer;
+      display: -webkit-flex;
       display: flex;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: center;
       justify-content: center;
       transition: border-color 0.15s, background 0.15s;
       margin-right: 20px;
@@ -229,6 +250,7 @@
 
     /* Task name */
     .task-name {
+      -webkit-flex: 1 1 0;
       flex: 1 1 0;
       font-size: 0.97rem;
       line-height: 1.4;
@@ -238,6 +260,7 @@
 
     /* Due date */
     .task-due {
+      -webkit-flex-shrink: 0;
       flex-shrink: 0;
       font-size: 0.82rem;
       color: #777;
@@ -255,6 +278,7 @@
 
     /* Snooze button */
     .btn-snooze {
+      -webkit-flex-shrink: 0;
       flex-shrink: 0;
       width: 34px;
       height: 34px;
@@ -262,8 +286,11 @@
       border: 1px solid #c8d8f8;
       border-radius: 6px;
       cursor: pointer;
+      display: -webkit-flex;
       display: flex;
+      -webkit-align-items: center;
       align-items: center;
+      -webkit-justify-content: center;
       justify-content: center;
       color: #4a90e2;
       font-size: 1.1rem;
