@@ -939,24 +939,6 @@ if (typeof Promise === 'undefined') {
   if (getToken()) { showApp(); fetchAndRender(); }
   else { showSetup(''); }
 
-  // ── Keep-awake: prevent Kindle (and other browsers) from sleeping ──
-  // Try the modern Wake Lock API first; fall back to a tiny scroll nudge.
-  if ('wakeLock' in navigator) {
-    var reacquireWakeLock = function () {
-      navigator.wakeLock.request('screen').catch(function () {});
-    };
-    reacquireWakeLock();
-    // Wake lock is released when the tab goes to background; reacquire on return.
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible') reacquireWakeLock();
-    });
-  } else {
-    // Fallback: scroll 1px and back every 55s — may reset Kindle's sleep timer.
-    setInterval(function () {
-      window.scrollBy(0, 1);
-      window.scrollBy(0, -1);
-    }, 55000);
-  }
 
 })();
 </script>
