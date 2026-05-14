@@ -338,6 +338,46 @@
 </div>
 
 <script>
+// ── Promise polyfill for older browsers (Kindle, etc.) ──
+if (typeof Promise === 'undefined') {
+  window.Promise = function (fn) {
+    var self = this;
+    self._s = 'pending'; self._v = undefined;
+    self._ok = []; self._fail = [];
+    function res(v) {
+      if (self._s !== 'pending') return;
+      self._s = 'resolved'; self._v = v;
+      self._ok.forEach(function (f) { setTimeout(function () { f(v); }, 0); });
+    }
+    function rej(r) {
+      if (self._s !== 'pending') return;
+      self._s = 'rejected'; self._v = r;
+      self._fail.forEach(function (f) { setTimeout(function () { f(r); }, 0); });
+    }
+    try { fn(res, rej); } catch (e) { rej(e); }
+  };
+  Promise.prototype.then = function (onOk, onFail) {
+    var self = this;
+    return new Promise(function (res, rej) {
+      function go(fn, v) { try { res(fn ? fn(v) : v); } catch (e) { rej(e); } }
+      function goFail(fn, v) { try { if (fn) res(fn(v)); else rej(v); } catch (e) { rej(e); } }
+      if (self._s === 'resolved') setTimeout(function () { go(onOk, self._v); }, 0);
+      else if (self._s === 'rejected') setTimeout(function () { goFail(onFail, self._v); }, 0);
+      else { self._ok.push(function (v) { go(onOk, v); }); self._fail.push(function (v) { goFail(onFail, v); }); }
+    });
+  };
+  Promise.prototype.catch = function (fn) { return this.then(undefined, fn); };
+  Promise.all = function (ps) {
+    return new Promise(function (res, rej) {
+      var out = [], left = ps.length;
+      if (!left) { res(out); return; }
+      ps.forEach(function (p, i) {
+        p.then(function (v) { out[i] = v; if (!--left) res(out); }, rej);
+      });
+    });
+  };
+}
+
 (function () {
   'use strict';
 
@@ -502,7 +542,8 @@
   function clearDropIndicators() {
     var rows = document.querySelectorAll('#task-list .task-row');
     for (var i = 0; i < rows.length; i++) {
-      rows[i].classList.remove('drop-above', 'drop-below');
+      rows[i].classList.remove('drop-above');
+      rows[i].classList.remove('drop-below');
     }
   }
 
@@ -823,8 +864,9 @@
 
   document.getElementById('reorder-btn').addEventListener('click', function () {
     var app = document.getElementById('app');
-    var active = app.classList.toggle('reorder-mode');
-    this.classList.toggle('active', active);
+    var active = !app.classList.contains('reorder-mode');
+    if (active) { app.classList.add('reorder-mode'); this.classList.add('active'); }
+    else { app.classList.remove('reorder-mode'); this.classList.remove('active'); }
   });
   document.getElementById('save-pat-btn').addEventListener('click', function () {
     var val = document.getElementById('pat-input').value.trim();
