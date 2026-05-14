@@ -516,7 +516,7 @@ if (typeof Promise === 'undefined') {
   // ── Zoom ──────────────────────────────────────────────
   function getZoom() { return parseFloat(localStorage.getItem('zoom') || '1'); }
   function applyZoom(z) {
-    document.getElementById('task-list').style.zoom = z;
+    document.body.style.zoom = z;
     localStorage.setItem('zoom', z);
   }
   function stepZoom(delta) {
