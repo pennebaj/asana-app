@@ -713,20 +713,27 @@ if (typeof Promise === 'undefined') {
 
   // ── Data ──────────────────────────────────────────────
   function loadTasks() {
-    return request('GET',
-      '/tasks?assignee=me&workspace=' + WORKSPACE +
-      '&opt_fields=name,due_on,completed,notes&limit=100'
-    ).then(function (res) {
-      var filtered = res.data
-        .filter(function (t) { return !t.completed && t.due_on; })
-        .map(function (t, i) { t._order = i; return t; })
-        .sort(function (a, b) {
-          if (a.due_on < b.due_on) return -1;
-          if (a.due_on > b.due_on) return 1;
-          return a._order - b._order;
-        });
-      return applyOrder(filtered);
-    });
+    // Step 1: get the user's My Tasks list GID for this workspace
+    return request('GET', '/users/me/user_task_list?workspace=' + WORKSPACE)
+      .then(function (res) {
+        var listGid = res.data.gid;
+        // Step 2: fetch all tasks from that list
+        return request('GET',
+          '/user_task_lists/' + listGid + '/tasks' +
+          '?opt_fields=name,due_on,completed,notes&completed_since=now&limit=100'
+        );
+      })
+      .then(function (res) {
+        var filtered = res.data
+          .filter(function (t) { return !t.completed && t.due_on; })
+          .map(function (t, i) { t._order = i; return t; })
+          .sort(function (a, b) {
+            if (a.due_on < b.due_on) return -1;
+            if (a.due_on > b.due_on) return 1;
+            return a._order - b._order;
+          });
+        return applyOrder(filtered);
+      });
   }
 
   function completeTask(gid) { return request('PUT', '/tasks/' + gid, { completed: true }); }
