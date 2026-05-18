@@ -422,7 +422,7 @@ if (typeof Promise === 'undefined') {
   Promise.prototype.then = function (onOk, onFail) {
     var self = this;
     return new Promise(function (res, rej) {
-      function go(fn, v) { try { res(fn ? fn(v) : v); } catch (e) { rej(e); } }
+      function go(fn, v) { try { var r = fn ? fn(v) : v; if (r && typeof r.then === 'function') { r.then(res, rej); } else { res(r); } } catch (e) { rej(e); } }
       function goFail(fn, v) { try { if (fn) res(fn(v)); else rej(v); } catch (e) { rej(e); } }
       if (self._s === 'resolved') setTimeout(function () { go(onOk, self._v); }, 0);
       else if (self._s === 'rejected') setTimeout(function () { goFail(onFail, self._v); }, 0);
