@@ -444,14 +444,8 @@ if (typeof Promise === 'undefined') {
 (function () {
   'use strict';
 
-  var API      = 'https://app.asana.com/api/1.0';
-  var PROJECT  = '1201435555554967';
-  var SECTIONS = [
-    '1201435555556187', // Recently assigned
-    '1201435555556192', // Do today
-    '1201435555556259', // Do next week
-    '1201435555556261'  // Do later
-  ];
+  var API       = 'https://app.asana.com/api/1.0';
+  var WORKSPACE = '1201435508588371';
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   // ── Polyfill ───────────────────────────────────────────
@@ -719,16 +713,11 @@ if (typeof Promise === 'undefined') {
 
   // ── Data ──────────────────────────────────────────────
   function loadTasks() {
-    var fetches = SECTIONS.map(function (gid) {
-      return request('GET',
-        '/sections/' + gid + '/tasks' +
-        '?opt_fields=name,due_on,completed,notes&limit=100'
-      ).then(function (res) { return res.data; });
-    });
-    return Promise.all(fetches).then(function (results) {
-      var all = [];
-      results.forEach(function (tasks) { tasks.forEach(function (t) { all.push(t); }); });
-      var filtered = all
+    return request('GET',
+      '/tasks?assignee=me&workspace=' + WORKSPACE +
+      '&opt_fields=name,due_on,completed,notes&limit=100'
+    ).then(function (res) {
+      var filtered = res.data
         .filter(function (t) { return !t.completed && t.due_on; })
         .map(function (t, i) { t._order = i; return t; })
         .sort(function (a, b) {
